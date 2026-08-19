@@ -14,7 +14,11 @@ import {
   subscribeToDataUpdates,
 } from '@/lib/db.client';
 import { SearchResult } from '@/lib/types';
-import { processImageUrl } from '@/lib/utils';
+import {
+  getImageProxyFallbackUrl,
+  POSTER_REFERRER_POLICY,
+  processImageUrl,
+} from '@/lib/utils';
 
 import { ImagePlaceholder } from '@/components/ImagePlaceholder';
 
@@ -282,7 +286,18 @@ export default function VideoCard({
           alt={actualTitle}
           fill
           className='object-cover'
-          referrerPolicy='no-referrer'
+          referrerPolicy={POSTER_REFERRER_POLICY}
+          onError={(event) => {
+            const image = event.currentTarget;
+            if (image.dataset.proxyRetried === 'true') {
+              image.style.display = 'none';
+              return;
+            }
+
+            image.dataset.proxyRetried = 'true';
+            image.srcset = '';
+            image.src = getImageProxyFallbackUrl(actualPoster);
+          }}
           onLoadingComplete={() => setIsLoading(true)}
         />
 

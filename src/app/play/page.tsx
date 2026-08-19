@@ -19,7 +19,12 @@ import {
   subscribeToDataUpdates,
 } from '@/lib/db.client';
 import { SearchResult } from '@/lib/types';
-import { getVideoResolutionFromM3u8, processImageUrl } from '@/lib/utils';
+import {
+  getImageProxyFallbackUrl,
+  getVideoResolutionFromM3u8,
+  POSTER_REFERRER_POLICY,
+  processImageUrl,
+} from '@/lib/utils';
 
 import EpisodeSelector from '@/components/EpisodeSelector';
 import PageLayout from '@/components/PageLayout';
@@ -1653,6 +1658,18 @@ function PlayPageClient() {
                     src={processImageUrl(videoCover)}
                     alt={videoTitle}
                     className='w-full h-full object-cover'
+                    referrerPolicy={POSTER_REFERRER_POLICY}
+                    onError={(event) => {
+                      const image = event.currentTarget;
+                      if (image.dataset.proxyRetried === 'true') {
+                        image.style.display = 'none';
+                        return;
+                      }
+
+                      image.dataset.proxyRetried = 'true';
+                      image.srcset = '';
+                      image.src = getImageProxyFallbackUrl(videoCover);
+                    }}
                   />
                 ) : (
                   <span className='text-gray-600 dark:text-gray-400'>

@@ -10,7 +10,12 @@ import React, {
 } from 'react';
 
 import { SearchResult } from '@/lib/types';
-import { getVideoResolutionFromM3u8, processImageUrl } from '@/lib/utils';
+import {
+  getImageProxyFallbackUrl,
+  getVideoResolutionFromM3u8,
+  POSTER_REFERRER_POLICY,
+  processImageUrl,
+} from '@/lib/utils';
 
 // 定义视频信息类型
 interface VideoInfo {
@@ -471,9 +476,19 @@ const EpisodeSelector: React.FC<EpisodeSelectorProps> = ({
                               src={processImageUrl(source.poster)}
                               alt={source.title}
                               className='w-full h-full object-cover'
+                              referrerPolicy={POSTER_REFERRER_POLICY}
                               onError={(e) => {
-                                const target = e.target as HTMLImageElement;
-                                target.style.display = 'none';
+                                const image = e.currentTarget;
+                                if (image.dataset.proxyRetried === 'true') {
+                                  image.style.display = 'none';
+                                  return;
+                                }
+
+                                image.dataset.proxyRetried = 'true';
+                                image.srcset = '';
+                                image.src = getImageProxyFallbackUrl(
+                                  source.poster
+                                );
                               }}
                             />
                           )}

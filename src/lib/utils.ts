@@ -2,6 +2,16 @@
 
 import Hls from 'hls.js';
 
+// 豆瓣封面会校验 Referer。仅发送站点 origin，避免暴露完整页面路径和参数。
+export const POSTER_REFERRER_POLICY = 'origin' as const;
+
+/**
+ * 生成站内图片代理地址，供封面直连失败时进行一次兜底重试
+ */
+export function getImageProxyFallbackUrl(originalUrl: string): string {
+  return `/api/image-proxy?url=${encodeURIComponent(originalUrl)}`;
+}
+
 /**
  * 获取图片代理 URL 设置
  */
